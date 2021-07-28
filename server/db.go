@@ -1,11 +1,11 @@
-package db
+package server
 
 import (
 	"sync"
 )
 
 type DB struct {
-	mutex sync.Mutex
+	mutex sync.RWMutex
 	store map[string]string
 }
 
@@ -16,7 +16,8 @@ func NewDB() *DB {
 }
 
 func (db *DB) Get(key string) (string, bool) {
-	db.mutex.Lock()
+	db.mutex.RLock()
+	defer db.mutex.RUnlock()
 	value, err := db.store[key]
 	if !err {
 		return "", false
@@ -26,5 +27,6 @@ func (db *DB) Get(key string) (string, bool) {
 
 func (db *DB) Put(key string, value string) {
 	db.mutex.Lock()
+	defer db.mutex.Unlock()
 	db.store[key] = value
 }
